@@ -1,5 +1,6 @@
 import org.example.CountryInfo;
 import org.example.IpTracer;
+import org.example.Language;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -54,7 +56,7 @@ public class IpTracerTest {
             CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
             assertEquals("Argentina", countryInfo.countryName);
         } catch (Exception ex) {
-            fail();
+            fail(ex.getMessage());
         }
     }
 
@@ -65,7 +67,7 @@ public class IpTracerTest {
             CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
             assertEquals("AR", countryInfo.countryCode);
         } catch (Exception ex) {
-            fail();
+            fail(ex.getMessage());
         }
     }
 
@@ -77,7 +79,22 @@ public class IpTracerTest {
             assertEquals(38.4161, countryInfo.latitude);
             assertEquals(63.6167, countryInfo.longitude);
         } catch (Exception ex) {
-            fail();
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should return country languages")
+    void testIpTracerReturnCountryLanguages() {
+        try {
+            CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
+            List<Language> languages = countryInfo.languages();
+            assertEquals(1, languages.size());
+
+            assertEquals("es", languages.getFirst().code);
+            assertEquals("Spanish", languages.getFirst().name);
+        } catch (Exception ex) {
+            fail(ex.getMessage());
         }
     }
 }

@@ -24,12 +24,22 @@ public class IpTracer {
 
     private CountryInfo getCountryInfoFrom(InetAddress ipAddress) {
         // Reference: https://ipapi.com/documentation
+        // https://ipapi.com/documentation#api_response_objects
         String jsonResponse = """
                                 { "ip": %s,
                                   "country_code": "AR",
                                   "country_name": "Argentina",
                                    "latitude": 38.4161,
-                                   "longitude": 63.6167}
+                                   "longitude": 63.6167,
+                                   "location": {
+                                       "languages": [
+                                           {
+                                               "code": "es",
+                                               "name": "Spanish"
+                                           }
+                                       ]
+                                   }
+                                 }
                                 """.formatted(ipAddress.getHostAddress());
 
         Gson gson = new GsonBuilder()
