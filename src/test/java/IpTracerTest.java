@@ -48,8 +48,8 @@ public class IpTracerTest {
     }
 
     @Test
-    @DisplayName("Should return country name with a valid IP Address")
-    void testIpTracerReturnCountryNameWithValidIP() {
+    @DisplayName("Should return country name")
+    void testIpTracerReturnCountryName() {
         try {
             CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
             assertEquals("Argentina", countryInfo.countryName);
@@ -59,11 +59,23 @@ public class IpTracerTest {
     }
 
     @Test
-    @DisplayName("Should return country name with a valid IP Address")
-    void testIpTracerReturnCountryCodeWithValidIP() {
+    @DisplayName("Should return country code")
+    void testIpTracerReturnCountryCode() {
         try {
             CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
             assertEquals("AR", countryInfo.countryCode);
+        } catch (Exception ex) {
+            fail();
+        }
+    }
+
+    @Test
+    @DisplayName("Should return country latitude / longitude")
+    void testIpTracerReturnCountryLatLng() {
+        try {
+            CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
+            assertEquals(38.4161, countryInfo.latitude);
+            assertEquals(63.6167, countryInfo.longitude);
         } catch (Exception ex) {
             fail();
         }
