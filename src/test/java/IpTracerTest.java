@@ -30,7 +30,7 @@ public class IpTracerTest {
 
     @Test
     @DisplayName("Should not work with a NULL IP")
-    void testIpTracerCreationWithNoIP() {
+    void testIpTracerWithNoIP() {
         Exception exception = assertThrows(NullPointerException.class, () -> {
             ipTracer.trace(null);
         });
@@ -40,13 +40,20 @@ public class IpTracerTest {
 
     @Test
     @DisplayName("Should work with a valid IP Address")
-    void testIpTracerCreationWithValidIP() {
-        String ipAddress = "192.168.0.1";
-
+    void testIpTracerWithValidIP() {
         assertDoesNotThrow(() -> {
-            InetAddress address = ipTracer.trace(ipAddress);
-
-            assertEquals(ipAddress, address.getHostAddress());
+            ipTracer.trace("192.168.0.1");
         });
+    }
+
+    @Test
+    @DisplayName("Should return country name with a valid IP Address")
+    void testIpTracerReturnCountryNameWithValidIP() {
+        try {
+            String countryName = ipTracer.trace("192.168.0.1");
+            assertEquals("Argentina", countryName);
+        } catch (Exception ex) {
+            fail();
+        }
     }
 }
