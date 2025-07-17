@@ -7,7 +7,10 @@ import java.net.UnknownHostException;
 import java.util.Objects;
 
 public class IpTracer {
-    public IpTracer() {
+    private final Ip2CountryService ip2CountryService;
+
+    public IpTracer(Ip2CountryService ip2CountryService) {
+        this.ip2CountryService = ip2CountryService;
     }
 
     public CountryInfo trace(String ipAddress)  throws UnknownHostException {
@@ -18,34 +21,6 @@ public class IpTracer {
         }
 
         InetAddress address = InetAddress.getByName(ipAddress);
-
-        return this.getCountryInfoFrom(address);
-    }
-
-    private CountryInfo getCountryInfoFrom(InetAddress ipAddress) {
-        // Reference: https://ipapi.com/documentation
-        // https://ipapi.com/documentation#api_response_objects
-        String jsonResponse = """
-                                { "ip": %s,
-                                  "country_code": "AR",
-                                  "country_name": "Argentina",
-                                   "latitude": 38.4161,
-                                   "longitude": 63.6167,
-                                   "location": {
-                                       "languages": [
-                                           {
-                                               "code": "es",
-                                               "name": "Spanish"
-                                           }
-                                       ]
-                                   }
-                                 }
-                                """.formatted(ipAddress.getHostAddress());
-
-        Gson gson = new GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .create();
-
-        return gson.fromJson(jsonResponse, CountryInfo.class);
+        return ip2CountryService.ipAddressToCountryInfo(address);
     }
 }

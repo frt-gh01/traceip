@@ -1,7 +1,7 @@
 import org.example.CountryInfo;
+import org.example.Ip2CountryService;
 import org.example.IpTracer;
 import org.example.Language;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ public class IpTracerTest {
 
     @BeforeEach
     void setUp() {
-        ipTracer = new IpTracer();
+        ipTracer = new IpTracer(new Ip2CountryService());
     }
 
     @Test
