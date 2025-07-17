@@ -1,3 +1,4 @@
+import org.example.CountryInfo;
 import org.example.IpTracer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,8 +51,19 @@ public class IpTracerTest {
     @DisplayName("Should return country name with a valid IP Address")
     void testIpTracerReturnCountryNameWithValidIP() {
         try {
-            String countryName = ipTracer.trace("192.168.0.1");
-            assertEquals("Argentina", countryName);
+            CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
+            assertEquals("Argentina", countryInfo.countryName);
+        } catch (Exception ex) {
+            fail();
+        }
+    }
+
+    @Test
+    @DisplayName("Should return country name with a valid IP Address")
+    void testIpTracerReturnCountryCodeWithValidIP() {
+        try {
+            CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
+            assertEquals("AR", countryInfo.countryCode);
         } catch (Exception ex) {
             fail();
         }

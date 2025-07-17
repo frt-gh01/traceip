@@ -1,7 +1,6 @@
 package org.example;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -11,7 +10,7 @@ public class IpTracer {
     public IpTracer() {
     }
 
-    public String trace(String ipAddress)  throws UnknownHostException {
+    public CountryInfo trace(String ipAddress)  throws UnknownHostException {
         Objects.requireNonNull(ipAddress, "Invalid IP Address: Null");
 
         if (ipAddress.isBlank()) {
@@ -23,15 +22,17 @@ public class IpTracer {
         return this.getCountryInfoFrom(address);
     }
 
-    private String getCountryInfoFrom(InetAddress ipAddress) {
+    private CountryInfo getCountryInfoFrom(InetAddress ipAddress) {
         String jsonResponse = """
                                 { "ip": %s,
                                   "country_code": "AR",
                                   "country_name": "Argentina" }
                                 """.formatted(ipAddress.getHostAddress());
 
-        JsonObject jsonObject = JsonParser.parseString(jsonResponse).getAsJsonObject();
+        Gson gson = new GsonBuilder()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .create();
 
-        return jsonObject.get("country_name").getAsString();
+        return gson.fromJson(jsonResponse, CountryInfo.class);
     }
 }
