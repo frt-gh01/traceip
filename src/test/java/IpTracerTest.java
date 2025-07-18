@@ -78,7 +78,7 @@ public class IpTracerTest {
         try {
             TraceResult traceResult = ipTracer.trace("192.168.0.1");
 
-            GeoPosition expected = new GeoPosition(63.6167, 38.4161);
+            GeoPosition expected = new GeoPosition(64, 34);
             assertTrue(traceResult.geoPosition().equals(expected));
 
         } catch (Exception ex) {
@@ -123,7 +123,7 @@ public class IpTracerTest {
             TraceResult traceResult = ipTracer.trace("192.168.0.1");
 
             // see. https://www.distance.to/Buenos-Aires,Ciudad-Aut%C3%B3noma-de-Buenos-Aires,ARG/Argentina
-            assertEquals(515.35, traceResult.distanceToBuenosAires());
+            assertEquals(515.35, traceResult.distanceKilometersToBuenosAires());
 
         } catch (Exception ex) {
             fail(ex.getMessage());

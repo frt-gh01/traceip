@@ -20,7 +20,7 @@ public class GeoPosition {
         return latitude;
     }
 
-    public double haversineDistanceTo(GeoPosition anotherGeoPosition) {
+    public double haversineDistanceKilometersTo(GeoPosition anotherGeoPosition) {
         double longitude = anotherGeoPosition.longitude;
         double latitude = anotherGeoPosition.latitude;
 

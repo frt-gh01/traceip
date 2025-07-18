@@ -24,11 +24,11 @@ public class TraceResult {
         return new GeoPosition(this.countryInfo.longitude, this.countryInfo.latitude);
     }
 
-    public double distanceToBuenosAires() {
+    public double distanceKilometersToBuenosAires() {
         GeoPosition geoBuenosAires = new GeoPosition(58.4370, 34.6075);
 
         GeoPosition geoPosition = this.geoPosition();
-        return geoPosition.haversineDistanceTo(geoBuenosAires);
+        return geoPosition.haversineDistanceKilometersTo(geoBuenosAires);
     }
 
     public List<Language> languages() {
