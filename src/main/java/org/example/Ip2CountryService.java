@@ -1,7 +1,5 @@
 package org.example;
 
-import com.google.gson.*;
-
 import java.net.InetAddress;
 
 public class Ip2CountryService {
