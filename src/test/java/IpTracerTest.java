@@ -1,14 +1,13 @@
-import org.example.CountryInfo;
-import org.example.Ip2CountryService;
-import org.example.IpTracer;
-import org.example.Language;
+import org.example.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.*;
 import java.util.List;
+import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,7 +17,8 @@ public class IpTracerTest {
 
     @BeforeEach
     void setUp() {
-        ipTracer = new IpTracer(new Ip2CountryService());
+        ipTracer = new IpTracer(new Ip2CountryService(),
+                                new TimeZoneService(this.fixedClock()));
     }
 
     @Test
@@ -53,8 +53,8 @@ public class IpTracerTest {
     @DisplayName("Should return country name")
     void testIpTracerReturnCountryName() {
         try {
-            CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
-            assertEquals("Argentina", countryInfo.countryName);
+            TraceResult traceResult = ipTracer.trace("192.168.0.1");
+            assertEquals("Argentina", traceResult.countryName());
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -64,8 +64,8 @@ public class IpTracerTest {
     @DisplayName("Should return country code")
     void testIpTracerReturnCountryCode() {
         try {
-            CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
-            assertEquals("AR", countryInfo.countryCode);
+            TraceResult traceResult = ipTracer.trace("192.168.0.1");
+            assertEquals("AR", traceResult.countryCode());
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -75,26 +75,46 @@ public class IpTracerTest {
     @DisplayName("Should return country latitude / longitude")
     void testIpTracerReturnCountryLatLng() {
         try {
-            CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
-            assertEquals(38.4161, countryInfo.latitude);
-            assertEquals(63.6167, countryInfo.longitude);
+            TraceResult traceResult = ipTracer.trace("192.168.0.1");
+            assertEquals(38.4161, traceResult.latitude());
+            assertEquals(63.6167, traceResult.longitude());
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
     }
 
     @Test
-    @DisplayName("Should return country languages")
+    @DisplayName("Should return country languages (0 languages")
     void testIpTracerReturnCountryLanguages() {
         try {
-            CountryInfo countryInfo = ipTracer.trace("192.168.0.1");
-            List<Language> languages = countryInfo.languages();
-            assertEquals(1, languages.size());
+            TraceResult traceResult = ipTracer.trace("192.168.0.1");
+            List<Language> languages = traceResult.languages();
 
-            assertEquals("es", languages.getFirst().code);
-            assertEquals("Spanish", languages.getFirst().name);
+            assertEquals(2, languages.size());
+
+            assertEquals("es", languages.get(0).code);
+            assertEquals("Spanish", languages.get(0).name);
+
+            assertEquals("gn", languages.get(1).code);
+            assertEquals("Guarani", languages.get(1).name);
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
+    }
+
+    @Test
+    @DisplayName("Should return country languages TimeZones")
+    void testIpTracerReturnTimeZones() throws UnknownHostException {
+        TraceResult traceResult = ipTracer.trace("192.168.0.1");
+        List<OffsetDateTime> dateTimes = traceResult.dateTimes();
+
+        assertEquals(2, dateTimes.size());
+        assertEquals("2025-07-18T07:00-03:00", dateTimes.get(0).toString());
+        assertEquals("2025-07-18T06:00-04:00", dateTimes.get(1).toString());
+    }
+
+    private Clock fixedClock() {
+        Instant now = Instant.parse("2025-07-18T10:00:00Z");
+        return Clock.fixed(now, ZoneOffset.UTC);
     }
 }
