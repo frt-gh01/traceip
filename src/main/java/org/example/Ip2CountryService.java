@@ -16,8 +16,8 @@ public class Ip2CountryService {
             {   "ip": %s,
                 "country_code": "AR",
                 "country_name": "Argentina",
-                "latitude": 38.4161,
-                "longitude": 63.6167,
+                "latitude": 34,
+                "longitude": 64,
                 "location": {
                     "languages": [
                        {

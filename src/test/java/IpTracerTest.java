@@ -77,15 +77,17 @@ public class IpTracerTest {
     void testIpTracerReturnCountryLatLng() {
         try {
             TraceResult traceResult = ipTracer.trace("192.168.0.1");
-            assertEquals(38.4161, traceResult.latitude());
-            assertEquals(63.6167, traceResult.longitude());
+
+            GeoPosition expected = new GeoPosition(63.6167, 38.4161);
+            assertTrue(traceResult.geoPosition().equals(expected));
+
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
     }
 
     @Test
-    @DisplayName("Should return country languages (0 languages")
+    @DisplayName("Should return country languages")
     void testIpTracerReturnCountryLanguages() {
         try {
             TraceResult traceResult = ipTracer.trace("192.168.0.1");
@@ -104,7 +106,7 @@ public class IpTracerTest {
     }
 
     @Test
-    @DisplayName("Should return country languages TimeZones")
+    @DisplayName("Should return country datetimes")
     void testIpTracerReturnTimeZones() throws UnknownHostException {
         TraceResult traceResult = ipTracer.trace("192.168.0.1");
         List<OffsetDateTime> dateTimes = traceResult.dateTimes();
@@ -112,6 +114,20 @@ public class IpTracerTest {
         assertEquals(2, dateTimes.size());
         assertEquals("2025-07-18T07:00-03:00", dateTimes.get(0).toString());
         assertEquals("2025-07-18T06:00-04:00", dateTimes.get(1).toString());
+    }
+
+    @Test
+    @DisplayName("Should calculate distance to geoposition")
+    void testIpTracerReturnDistanceToCity() {
+        try {
+            TraceResult traceResult = ipTracer.trace("192.168.0.1");
+
+            // see. https://www.distance.to/Buenos-Aires,Ciudad-Aut%C3%B3noma-de-Buenos-Aires,ARG/Argentina
+            assertEquals(515.35, traceResult.distanceToBuenosAires());
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
     }
 
     private Clock fixedClock() {

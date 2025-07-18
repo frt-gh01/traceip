@@ -20,12 +20,15 @@ public class TraceResult {
         return this.countryInfo.countryCode;
     }
 
-    public double latitude() {
-        return this.countryInfo.latitude;
+    public GeoPosition geoPosition() {
+        return new GeoPosition(this.countryInfo.longitude, this.countryInfo.latitude);
     }
 
-    public double longitude() {
-        return this.countryInfo.longitude;
+    public double distanceToBuenosAires() {
+        GeoPosition geoBuenosAires = new GeoPosition(58.4370, 34.6075);
+
+        GeoPosition geoPosition = this.geoPosition();
+        return geoPosition.haversineDistanceTo(geoBuenosAires);
     }
 
     public List<Language> languages() {
