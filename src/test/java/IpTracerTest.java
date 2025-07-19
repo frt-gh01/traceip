@@ -19,7 +19,7 @@ public class IpTracerTest {
     @BeforeEach
     void setUp() {
         ipTracer = new IpTracer(new Ip2CountryService(),
-                                new TimeZoneService(this.fixedClock()));
+                                this.buildTimeZoneServiceStub());
     }
 
     @Test
@@ -133,5 +133,16 @@ public class IpTracerTest {
     private Clock fixedClock() {
         Instant now = Instant.parse("2025-07-18T10:00:00Z");
         return Clock.fixed(now, ZoneOffset.UTC);
+    }
+
+    private TimeZoneServiceStub buildTimeZoneServiceStub() {
+        return new TimeZoneServiceStub(this.fixedClock(), """
+            {   "name": %s,
+                "timezones": [
+                    "UTC-03:00",
+                    "UTC-04:00"
+                ]
+            }
+            """::formatted);
     }
 }

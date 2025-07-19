@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class TimeZoneService {
+public abstract class TimeZoneService {
     private final Clock clock;
 
     public TimeZoneService(Clock clock) {
@@ -43,16 +43,5 @@ public class TimeZoneService {
                 .collect(Collectors.toList());
     }
 
-    // Reference:
-    // https://countrylayer.com/documentation/
-    private String requestZoneOffsets(String countryName) {
-        return """
-            {   "name": %s,
-                "timezones": [
-                    "UTC-03:00",
-                    "UTC-04:00"
-                ]
-            }
-            """.formatted(countryName);
-    }
+    abstract String requestZoneOffsets(String countryName);
 }
