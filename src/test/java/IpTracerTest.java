@@ -3,6 +3,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Clock;
 import java.time.Instant;
@@ -18,8 +19,8 @@ public class IpTracerTest {
 
     @BeforeEach
     void setUp() {
-        ipTracer = new IpTracer(new Ip2CountryService(),
-                                this.buildTimeZoneServiceStub());
+        ipTracer = new IpTracer(buildIp2CountryServiceStub(),
+                                buildTimeZoneServiceStub());
     }
 
     @Test
@@ -130,13 +131,13 @@ public class IpTracerTest {
         }
     }
 
-    private Clock fixedClock() {
+    private static Clock fixedClock() {
         Instant now = Instant.parse("2025-07-18T10:00:00Z");
         return Clock.fixed(now, ZoneOffset.UTC);
     }
 
-    private TimeZoneServiceStub buildTimeZoneServiceStub() {
-        return new TimeZoneServiceStub(this.fixedClock(), """
+    private static TimeZoneService buildTimeZoneServiceStub() {
+        return new TimeZoneServiceStub(fixedClock(), """
             {   "name": %s,
                 "timezones": [
                     "UTC-03:00",
@@ -144,5 +145,30 @@ public class IpTracerTest {
                 ]
             }
             """::formatted);
+    }
+
+    private static Ip2CountryService buildIp2CountryServiceStub() {
+        return new Ip2CountryServiceStub(ipAddress -> {
+            return """
+            {   "ip": %s,
+                "country_code": "AR",
+                "country_name": "Argentina",
+                "latitude": 34,
+                "longitude": 64,
+                "location": {
+                    "languages": [
+                       {
+                            "code": "es",
+                            "name": "Spanish"
+                       },
+                       {
+                            "code": "gn",
+                            "name": "Guarani"
+                       }
+                    ]
+                }
+            }
+            """.formatted(ipAddress.getHostAddress());
+        });
     }
 }
