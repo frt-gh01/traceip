@@ -19,12 +19,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class IpTracerTest {
 
+    PersistenceLayer persistenceLayer;
     IpTracer ipTracer;
 
     @BeforeEach
     void setUp() {
+        persistenceLayer = buildPersistenceLayer();
         ipTracer = new IpTracer(buildIp2CountryServiceStub(),
-                                buildTimeZoneServiceStub());
+                                buildTimeZoneServiceStub(),
+                                persistenceLayer);
     }
 
     @Test
@@ -135,6 +138,73 @@ public class IpTracerTest {
         }
     }
 
+    @Test
+    @DisplayName("Should persist trace")
+    void testIpTracerPersistTraceResult() {
+        try {
+
+            assertEquals(0, persistenceLayer.traceResultsCount());
+
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(1, persistenceLayer.traceResultsCount());
+
+            TraceResult persistedTraceResult = persistenceLayer.getTraceResults("AR").getFirst();
+
+            assertEquals("AR", persistedTraceResult.countryCode());
+            assertEquals("Argentina", persistedTraceResult.countryName());
+            assertEquals("192.168.0.1", persistedTraceResult.ipAddress());
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist multiple traces for same ip")
+    void testIpTracerPersistMultipleTraceResultSameIp() {
+        try {
+
+            assertEquals(0, persistenceLayer.traceResultsCount());
+
+            ipTracer.trace("192.168.0.1");
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(2, persistenceLayer.traceResultsCount());
+
+            List<TraceResult> persistedTraceResults = persistenceLayer.getTraceResults("AR");
+
+            assertTrue(persistedTraceResults.stream().allMatch(traceResult ->
+                    traceResult.ipAddress().equals("192.168.0.1") && traceResult.countryCode().equals("AR")));
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist multiple traces for different ips (same country)")
+    void testIpTracerPersistMultipleTraceResultDiffIpsSameCountry() {
+        try {
+
+            assertEquals(0, persistenceLayer.traceResultsCount());
+
+            ipTracer.trace("192.168.0.1");
+            ipTracer.trace("192.168.0.2");
+
+            assertEquals(2, persistenceLayer.traceResultsCount());
+
+            List<TraceResult> persistedTraceResults = persistenceLayer.getTraceResults("AR");
+
+            assertTrue(persistedTraceResults.stream().allMatch(traceResult -> traceResult.countryCode().equals("AR")));
+            assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.0.1")));
+            assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.0.2")));
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
     private static Clock fixedClock() {
         Instant now = Instant.parse("2025-07-18T10:00:00Z");
         return Clock.fixed(now, ZoneOffset.UTC);
@@ -174,5 +244,9 @@ public class IpTracerTest {
             }
             """.formatted(ipAddress.getHostAddress());
         });
+    }
+
+    private static PersistenceLayer buildPersistenceLayer() {
+        return new PersistenceLayer();
     }
 }

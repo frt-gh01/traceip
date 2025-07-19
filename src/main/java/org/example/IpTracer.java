@@ -3,6 +3,7 @@ package org.example;
 import org.example.services.Ip2CountryService;
 import org.example.services.TimeZoneService;
 import org.example.structs.CountryInfo;
+import org.example.structs.RequestInfo;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -13,10 +14,12 @@ import java.util.Objects;
 public class IpTracer {
     private final Ip2CountryService ip2CountryService;
     private final TimeZoneService timeZoneService;
+    private final PersistenceLayer persistenceLayer;
 
-    public IpTracer(Ip2CountryService ip2CountryService, TimeZoneService timeZoneService) {
+    public IpTracer(Ip2CountryService ip2CountryService, TimeZoneService timeZoneService, PersistenceLayer persistenceLayer) {
         this.ip2CountryService = ip2CountryService;
         this.timeZoneService = timeZoneService;
+        this.persistenceLayer = persistenceLayer;
     }
 
     public TraceResult trace(String ipAddress) throws UnknownHostException {
@@ -26,15 +29,22 @@ public class IpTracer {
             throw new UnknownHostException("Invalid IP Address: Empty");
         }
 
-        CountryInfo countryInfo = this.countryInfo(ipAddress);
+        RequestInfo requestInfo = this.requestInfo(ipAddress);
+        CountryInfo countryInfo = this.countryInfo(requestInfo.getIpAddress());
         List<OffsetDateTime> dateTimes = this.timeZoneInfo(countryInfo);
 
-        return new TraceResult(countryInfo, dateTimes);
+        TraceResult traceResult = new TraceResult(requestInfo, countryInfo, dateTimes);
+        this.persistenceLayer.persist(traceResult);
+
+        return traceResult;
     }
 
-    private CountryInfo countryInfo(String ipAddress) throws UnknownHostException {
-        InetAddress address = InetAddress.getByName(ipAddress);
-        return ip2CountryService.ipAddressToCountryInfo(address);
+    private RequestInfo requestInfo(String ipAddress) throws UnknownHostException {
+        return new RequestInfo(ipAddress);
+    }
+
+    private CountryInfo countryInfo(InetAddress ipAddress) {
+        return ip2CountryService.ipAddressToCountryInfo(ipAddress);
     }
 
     private List<OffsetDateTime> timeZoneInfo(CountryInfo countryInfo) {
