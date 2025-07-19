@@ -1,4 +1,4 @@
-package org.example;
+package org.example.services;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;

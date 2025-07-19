@@ -1,5 +1,8 @@
 package org.example;
 
+import org.example.structs.CountryInfo;
+import org.example.structs.Language;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 

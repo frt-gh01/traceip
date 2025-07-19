@@ -1,4 +1,6 @@
-package org.example;
+package org.example.services;
+
+import org.example.structs.CountryInfo;
 
 import java.net.InetAddress;
 

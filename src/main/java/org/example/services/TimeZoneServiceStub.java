@@ -1,4 +1,4 @@
-package org.example;
+package org.example.services;
 
 import java.time.Clock;
 import java.util.function.Function;

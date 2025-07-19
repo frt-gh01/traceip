@@ -1,4 +1,4 @@
-package org.example;
+package org.example.structs;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;

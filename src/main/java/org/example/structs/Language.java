@@ -1,4 +1,4 @@
-package org.example;
+package org.example.structs;
 
 public class Language {
     public String code;

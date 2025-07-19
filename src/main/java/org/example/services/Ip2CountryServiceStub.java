@@ -1,4 +1,4 @@
-package org.example;
+package org.example.services;
 
 import java.net.InetAddress;
 import java.util.function.Function;
