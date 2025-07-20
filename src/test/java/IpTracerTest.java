@@ -143,13 +143,13 @@ public class IpTracerTest {
     void testIpTracerPersistTraceResult() {
         try {
 
-            assertEquals(0, persistenceLayer.recordsCount());
+            assertEquals(0, persistenceLayer.queryTraceResultsCount());
 
             ipTracer.trace("192.168.0.1");
 
-            assertEquals(1, persistenceLayer.recordsCount());
+            assertEquals(1, persistenceLayer.queryTraceResultsCount());
 
-            TraceResult persistedTraceResult = persistenceLayer.recordsByCountry("AR").getFirst();
+            TraceResult persistedTraceResult = persistenceLayer.queryTraceResultsByCountry("AR").getFirst();
 
             assertEquals("AR", persistedTraceResult.countryCode());
             assertEquals("Argentina", persistedTraceResult.countryName());
@@ -165,14 +165,14 @@ public class IpTracerTest {
     void testIpTracerPersistMultipleTraceResultSameIp() {
         try {
 
-            assertEquals(0, persistenceLayer.recordsCount());
+            assertEquals(0, persistenceLayer.queryTraceResultsCount());
 
             ipTracer.trace("192.168.0.1");
             ipTracer.trace("192.168.0.1");
 
-            assertEquals(2, persistenceLayer.recordsCount());
+            assertEquals(2, persistenceLayer.queryTraceResultsCount());
 
-            List<TraceResult> persistedTraceResults = persistenceLayer.recordsByCountry("AR");
+            List<TraceResult> persistedTraceResults = persistenceLayer.queryTraceResultsByCountry("AR");
 
             assertTrue(persistedTraceResults.stream().allMatch(traceResult ->
                     traceResult.ipAddress().equals("192.168.0.1") && traceResult.countryCode().equals("AR")));
@@ -187,14 +187,14 @@ public class IpTracerTest {
     void testIpTracerPersistMultipleTraceResultDiffIpsSameCountry() {
         try {
 
-            assertEquals(0, persistenceLayer.recordsCount());
+            assertEquals(0, persistenceLayer.queryTraceResultsCount());
 
             ipTracer.trace("192.168.0.1");
             ipTracer.trace("192.168.0.2");
 
-            assertEquals(2, persistenceLayer.recordsCount());
+            assertEquals(2, persistenceLayer.queryTraceResultsCount());
 
-            List<TraceResult> persistedTraceResults = persistenceLayer.recordsByCountry("AR");
+            List<TraceResult> persistedTraceResults = persistenceLayer.queryTraceResultsByCountry("AR");
 
             assertTrue(persistedTraceResults.stream().allMatch(traceResult -> traceResult.countryCode().equals("AR")));
             assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.0.1")));
@@ -210,7 +210,7 @@ public class IpTracerTest {
     void testIpTracerPersistMultipleTraceResultDiffIpsDiffCountries() {
         try {
 
-            assertEquals(0, persistenceLayer.recordsCount());
+            assertEquals(0, persistenceLayer.queryTraceResultsCount());
 
             ipTracer.trace("192.168.0.1"); // AR
             ipTracer.trace("192.168.0.2"); // AR
@@ -218,25 +218,25 @@ public class IpTracerTest {
             ipTracer.trace("192.168.2.1"); // ES
             ipTracer.trace("192.168.2.2"); // ES
 
-            assertEquals(5, persistenceLayer.recordsCount());
+            assertEquals(5, persistenceLayer.queryTraceResultsCount());
 
             List<TraceResult> persistedTraceResults;
 
             // AR
-            persistedTraceResults = persistenceLayer.recordsByCountry("AR");
+            persistedTraceResults = persistenceLayer.queryTraceResultsByCountry("AR");
 
             assertTrue(persistedTraceResults.stream().allMatch(traceResult -> traceResult.countryCode().equals("AR")));
             assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.0.1")));
             assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.0.2")));
 
             // BR
-            persistedTraceResults = persistenceLayer.recordsByCountry("BR");
+            persistedTraceResults = persistenceLayer.queryTraceResultsByCountry("BR");
 
             assertTrue(persistedTraceResults.stream().allMatch(traceResult -> traceResult.countryCode().equals("BR")));
             assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.1.1")));
 
             // ES
-            persistedTraceResults = persistenceLayer.recordsByCountry("ES");
+            persistedTraceResults = persistenceLayer.queryTraceResultsByCountry("ES");
 
             assertTrue(persistedTraceResults.stream().allMatch(traceResult -> traceResult.countryCode().equals("ES")));
             assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.2.1")));
@@ -257,8 +257,96 @@ public class IpTracerTest {
             ipTracer.trace("192.168.2.1"); // ES
             ipTracer.trace("192.168.2.2"); // ES
 
-            assertEquals(2358.39, persistenceLayer.distanceToBuenosAiresByCountry("BR").orElse(0.0));
-            assertEquals(10493.89, persistenceLayer.distanceToBuenosAiresByCountry("ES").orElse(0.0));
+            assertEquals(2358.39, persistenceLayer.queryDistanceToBuenosAiresByCountry("BR").orElse(0.0));
+            assertEquals(10493.89, persistenceLayer.queryDistanceToBuenosAiresByCountry("ES").orElse(0.0));
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist farthest distance when no countries")
+    void testIpTracerPersistFathestDistanceNoCountries() {
+        try {
+
+            assert(persistenceLayer.queryFarthestDistanceToBuenosAires().isEmpty());
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist farthest distance when 1 country")
+    void testIpTracerPersistFathestDistanceOneCountry() {
+        try {
+
+            ipTracer.trace("192.168.1.1"); // BR
+
+            assertEquals(2358.39, persistenceLayer.queryFarthestDistanceToBuenosAires().orElse(0.0));
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist farthest distance when many countries")
+    void testIpTracerPersistFathestDistanceManyCountry() {
+        try {
+
+            ipTracer.trace("192.168.0.1"); // AR
+            ipTracer.trace("192.168.0.2"); // AR
+            ipTracer.trace("192.168.1.1"); // BR
+            ipTracer.trace("192.168.2.1"); // ES
+            ipTracer.trace("192.168.2.2"); // ES
+
+            assertEquals(10493.89, persistenceLayer.queryFarthestDistanceToBuenosAires().orElse(0.0));
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist closest distance when no countries")
+    void testIpTracerPersistClosestDistanceNoCountries() {
+        try {
+
+            assert(persistenceLayer.queryClosestDistanceToBuenosAires().isEmpty());
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist closest distance when 1 country")
+    void testIpTracerPersistClosestDistanceOneCountry() {
+        try {
+
+            ipTracer.trace("192.168.1.1"); // BR
+
+            assertEquals(2358.39, persistenceLayer.queryClosestDistanceToBuenosAires().orElse(0.0));
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist closest distance when many countries")
+    void testIpTracerPersistClosestDistanceManyCountry() {
+        try {
+
+            ipTracer.trace("192.168.0.1"); // AR
+            ipTracer.trace("192.168.0.2"); // AR
+            ipTracer.trace("192.168.1.1"); // BR
+            ipTracer.trace("192.168.2.1"); // ES
+            ipTracer.trace("192.168.2.2"); // ES
+
+            assertEquals(515.35, persistenceLayer.queryClosestDistanceToBuenosAires().orElse(0.0));
 
         } catch (Exception ex) {
             fail(ex.getMessage());
