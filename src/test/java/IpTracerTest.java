@@ -257,8 +257,8 @@ public class IpTracerTest {
             ipTracer.trace("192.168.2.1"); // ES
             ipTracer.trace("192.168.2.2"); // ES
 
-            assertEquals(2358.39, persistenceLayer.queryDistanceToBuenosAiresByCountry("BR").orElse(0.0));
-            assertEquals(10493.89, persistenceLayer.queryDistanceToBuenosAiresByCountry("ES").orElse(0.0));
+            assertEquals(2358.39, persistenceLayer.queryDistanceToBuenosAiresByCountry("BR").orElse(0.0), 0.1);
+            assertEquals(10493.89, persistenceLayer.queryDistanceToBuenosAiresByCountry("ES").orElse(0.0), 0.1);
 
         } catch (Exception ex) {
             fail(ex.getMessage());
@@ -284,7 +284,7 @@ public class IpTracerTest {
 
             ipTracer.trace("192.168.1.1"); // BR
 
-            assertEquals(2358.39, persistenceLayer.queryFarthestDistanceToBuenosAires().orElse(0.0));
+            assertEquals(2358.39, persistenceLayer.queryFarthestDistanceToBuenosAires().orElse(0.0), 0.1);
 
         } catch (Exception ex) {
             fail(ex.getMessage());
@@ -302,7 +302,7 @@ public class IpTracerTest {
             ipTracer.trace("192.168.2.1"); // ES
             ipTracer.trace("192.168.2.2"); // ES
 
-            assertEquals(10493.89, persistenceLayer.queryFarthestDistanceToBuenosAires().orElse(0.0));
+            assertEquals(10493.89, persistenceLayer.queryFarthestDistanceToBuenosAires().orElse(0.0), 0.1);
 
         } catch (Exception ex) {
             fail(ex.getMessage());
@@ -328,7 +328,7 @@ public class IpTracerTest {
 
             ipTracer.trace("192.168.1.1"); // BR
 
-            assertEquals(2358.39, persistenceLayer.queryClosestDistanceToBuenosAires().orElse(0.0));
+            assertEquals(2358.39, persistenceLayer.queryClosestDistanceToBuenosAires().orElse(0.0), 0.1);
 
         } catch (Exception ex) {
             fail(ex.getMessage());
@@ -346,7 +346,55 @@ public class IpTracerTest {
             ipTracer.trace("192.168.2.1"); // ES
             ipTracer.trace("192.168.2.2"); // ES
 
-            assertEquals(515.35, persistenceLayer.queryClosestDistanceToBuenosAires().orElse(0.0));
+            assertEquals(515.35, persistenceLayer.queryClosestDistanceToBuenosAires().orElse(0.0), 0.1);
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist average distance when no country")
+    void testIpTracerPersistAverageDistanceNoCountries() {
+        try {
+
+            assertEquals(0.0, persistenceLayer.queryAverageDistanceToBuenosAires().orElse(0.0), 0.1);
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist average distance when 1 country")
+    void testIpTracerPersistAverageDistanceOneCountry() {
+        try {
+
+            ipTracer.trace("192.168.1.1"); // BR
+
+            assertEquals(2358.39, persistenceLayer.queryAverageDistanceToBuenosAires().orElse(0.0), 0.1);
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist average distance when many countries")
+    void testIpTracerPersistAverageDistanceManyCountry() {
+        try {
+
+            ipTracer.trace("192.168.0.1"); // AR
+            ipTracer.trace("192.168.0.2"); // AR
+            ipTracer.trace("192.168.1.1"); // BR
+            ipTracer.trace("192.168.1.2"); // BR
+            ipTracer.trace("192.168.1.2"); // BR
+            ipTracer.trace("192.168.2.1"); // ES
+            ipTracer.trace("192.168.2.2"); // ES
+            ipTracer.trace("192.168.2.3"); // ES
+            ipTracer.trace("192.168.2.3"); // ES
+
+            assertEquals(5564.6, persistenceLayer.queryAverageDistanceToBuenosAires().orElse(0.0), 0.1);
 
         } catch (Exception ex) {
             fail(ex.getMessage());

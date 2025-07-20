@@ -2,14 +2,22 @@ package org.example;
 
 import org.javatuples.Pair;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class PersistenceLayer {
     List<TraceResult> traceResults = new ArrayList<>();
+
+    // WARNING: Eager calculations.
+    // They will be updated when persisting a new traceResult.
     Map<String, Double> distanceToBsAsByCountry = new HashMap<>();
+    // TODO: The following might be implemented as lazy calculation:
     Pair<Optional<String>, Optional<Double>> farthestDistanceToBuenosAires = Pair.with(Optional.empty(), Optional.empty());
     Pair<Optional<String>, Optional<Double>> closestDistanceToBuenosAires = Pair.with(Optional.empty(), Optional.empty());
+    // The following needs to be eager calculation because of app usage:
+    Optional<Double> averageDistance = Optional.empty();
 
     // @Transactional
     public void persist(TraceResult traceResult) {
@@ -19,6 +27,7 @@ public class PersistenceLayer {
         this.updateDistanceToBsAsByCountry(traceResult);
         this.updateFarthestDistanceToBsAs(traceResult);
         this.updateClosestDistanceToBsAs(traceResult);
+        this.updateAverageDistanceToBsAs(traceResult);
     }
 
     public int queryTraceResultsCount() {
@@ -49,6 +58,10 @@ public class PersistenceLayer {
         return closestDistanceToBuenosAires.getValue1();
     }
 
+    public Optional<Double> queryAverageDistanceToBuenosAires() {
+        return averageDistance;
+    }
+
     private void updateDistanceToBsAsByCountry(TraceResult traceResult) {
         distanceToBsAsByCountry.putIfAbsent(traceResult.countryCode(), traceResult.distanceKilometersToBuenosAires());
     }
@@ -69,5 +82,20 @@ public class PersistenceLayer {
         if (closestDistance.isEmpty() || closestDistance.get() > traceResultDistance) {
             closestDistanceToBuenosAires = Pair.with(Optional.of(traceResult.countryCode()), Optional.of(traceResult.distanceKilometersToBuenosAires()));
         }
+    }
+
+    private void updateAverageDistanceToBsAs(TraceResult traceResult) {
+        double prevCount = this.queryTraceResultsCount() - 1;
+
+        double prevSum = prevCount * this.averageDistance.orElse(0.0);
+        double newSum = prevSum + traceResult.distanceKilometersToBuenosAires();
+
+        this.averageDistance = Optional.of(truncate(newSum / (prevCount + 1)));
+    }
+
+    // TODO: remove repeated code with GeoPosition
+    private double truncate(double number) {
+        BigDecimal truncated = new BigDecimal(number).setScale(2, RoundingMode.DOWN);
+        return truncated.doubleValue();
     }
 }
