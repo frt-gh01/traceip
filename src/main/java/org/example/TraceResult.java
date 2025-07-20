@@ -36,7 +36,7 @@ public class TraceResult {
     }
 
     public double distanceKilometersToBuenosAires() {
-        GeoPosition geoBuenosAires = new GeoPosition(58.4370, 34.6075);
+        GeoPosition geoBuenosAires = new GeoPosition(-58.4370, -34.6075);
 
         GeoPosition geoPosition = this.geoPosition();
         return geoPosition.haversineDistanceKilometersTo(geoBuenosAires);

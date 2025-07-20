@@ -86,7 +86,7 @@ public class IpTracerTest {
         try {
             TraceResult traceResult = ipTracer.trace("192.168.0.1");
 
-            GeoPosition expected = new GeoPosition(64, 34);
+            GeoPosition expected = new GeoPosition(-64, -34);
             assertTrue(traceResult.geoPosition().equals(expected));
 
         } catch (Exception ex) {
@@ -247,6 +247,24 @@ public class IpTracerTest {
         }
     }
 
+    @Test
+    @DisplayName("Should persist distance by country")
+    void testIpTracerPersistDistanceByCountry() {
+        try {
+            ipTracer.trace("192.168.0.1"); // AR
+            ipTracer.trace("192.168.0.2"); // AR
+            ipTracer.trace("192.168.1.1"); // BR
+            ipTracer.trace("192.168.2.1"); // ES
+            ipTracer.trace("192.168.2.2"); // ES
+
+            assertEquals(2358.39, persistenceLayer.distanceToBuenosAiresByCountry("BR").orElse(0.0));
+            assertEquals(10493.89, persistenceLayer.distanceToBuenosAiresByCountry("ES").orElse(0.0));
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
     private static Clock fixedClock() {
         Instant now = Instant.parse("2025-07-18T10:00:00Z");
         return Clock.fixed(now, ZoneOffset.UTC);
@@ -268,13 +286,13 @@ public class IpTracerTest {
     // https://ipapi.com/documentation#api_response_objects
     private static Ip2CountryService buildIp2CountryServiceStub() {
         String jsonArgentina = """
-            { "ip": %s, "country_code": "AR", "country_name": "Argentina", "latitude": 34, "longitude": 64,
+            { "ip": %s, "country_code": "AR", "country_name": "Argentina", "latitude": -34, "longitude": -64,
               "location": { "languages": [{ "code": "es", "name": "Spanish" }, { "code": "gn", "name": "Guarani" }] }
             }
             """;
 
         String jsonBrasil = """
-            { "ip": %s, "country_code": "BR", "country_name": "Brasil", "latitude": 14.23, "longitude": 51.92,
+            { "ip": %s, "country_code": "BR", "country_name": "Brasil", "latitude": -14.23, "longitude": -51.92,
               "location": { "languages": [{ "code": "pt", "name": "Portuguese" }] }
             }
             """;
@@ -282,7 +300,9 @@ public class IpTracerTest {
         String jsonEspana = """
             { "ip": %s, "country_code": "ES", "country_name": "España", "latitude": 40.46, "longitude": 3.74,
               "location": { "languages": [{ "code": "es", "name": "Spanish" }, { "code": "ca", "name": "Catalan" },
-                                          { "code": "gl", "name": "Galician" }] }
+                                          { "code": "gl", "name": "Galician" }] 
+                                          
+                                          }
             }
             """;
 

@@ -29,10 +29,14 @@ public class GeoPosition {
         double lngDistance = Math.toRadians(longitude - this.longitude);
         double latDistance = Math.toRadians(latitude - this.latitude);
 
-        double a = Math.pow(Math.sin(latDistance / 2), 2) + Math.cos(Math.toRadians(this.latitude)) * Math.cos(Math.toRadians(latitude)) * Math.pow(Math.sin(lngDistance / 2), 2);
+        double a = haversine(latDistance) + Math.cos(Math.toRadians(this.latitude)) * Math.cos(Math.toRadians(latitude)) * haversine(lngDistance);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
         return this.truncate(EARTH_RADIUS * c);
+    }
+
+    private double haversine(double number) {
+        return Math.pow(Math.sin(number / 2), 2);
     }
 
     public boolean equals(GeoPosition geoPosition) {
