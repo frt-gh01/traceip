@@ -401,6 +401,29 @@ public class IpTracerTest {
         }
     }
 
+    @Test
+    @DisplayName("Should print result")
+    void testIpTracerPrintReport() {
+        try {
+
+            TraceResult traceResult =  ipTracer.trace("192.168.0.1"); // ES
+
+            String expected = """
+                IP: 192.168.0.1
+                País: Argentina
+                ISO Code: AR
+                Idiomas: Spanish (es), Guarani (gn)
+                Hora: 07:00:00 (UTC-03:00), 06:00:00 (UTC-04:00)
+                Distancia estimada: 515.35 kms (-34.0, -64.0) a Buenos Aires (-34.6075, -58.437)
+            """;
+
+            assertEquals(expected, traceResult.toString());
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
     private static Clock fixedClock() {
         Instant now = Instant.parse("2025-07-18T10:00:00Z");
         return Clock.fixed(now, ZoneOffset.UTC);

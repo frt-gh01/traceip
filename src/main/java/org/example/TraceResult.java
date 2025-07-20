@@ -62,13 +62,13 @@ public class TraceResult {
         String distance = "%s kms %s a Buenos Aires %s".formatted(this.distanceKilometersToBuenosAires(), this.geoPosition(), GEO_BUENOS_AIRES);
 
         return """ 
-                   IP: %s
-                   País: %s
-                   ISO Code: %s
-                   Idiomas: %s
-                   Hora: %s
-                   Distancia estimada: %s
-               """.formatted(this.ipAddress(), this.countryName(), this.countryCode(),
-                             languages, times, distance);
+            IP: %s
+            País: %s
+            ISO Code: %s
+            Idiomas: %s
+            Hora: %s
+            Distancia estimada: %s
+        """.formatted(this.ipAddress(), this.countryName(), this.countryCode(),
+                      languages, times, distance);
     }
 }
