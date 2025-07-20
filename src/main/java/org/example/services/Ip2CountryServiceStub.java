@@ -12,9 +12,6 @@ public class Ip2CountryServiceStub extends Ip2CountryService {
         this.requestHandler = requestHandler;
     }
 
-    // Reference:
-    // https://ipapi.com/documentation
-    // https://ipapi.com/documentation#api_response_objects
     @Override
     String requestCountryInfo(InetAddress ipAddress) {
         return this.requestHandler.apply(ipAddress);

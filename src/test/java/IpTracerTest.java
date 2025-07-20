@@ -143,13 +143,13 @@ public class IpTracerTest {
     void testIpTracerPersistTraceResult() {
         try {
 
-            assertEquals(0, persistenceLayer.traceResultsCount());
+            assertEquals(0, persistenceLayer.recordsCount());
 
             ipTracer.trace("192.168.0.1");
 
-            assertEquals(1, persistenceLayer.traceResultsCount());
+            assertEquals(1, persistenceLayer.recordsCount());
 
-            TraceResult persistedTraceResult = persistenceLayer.getTraceResults("AR").getFirst();
+            TraceResult persistedTraceResult = persistenceLayer.recordsByCountry("AR").getFirst();
 
             assertEquals("AR", persistedTraceResult.countryCode());
             assertEquals("Argentina", persistedTraceResult.countryName());
@@ -165,14 +165,14 @@ public class IpTracerTest {
     void testIpTracerPersistMultipleTraceResultSameIp() {
         try {
 
-            assertEquals(0, persistenceLayer.traceResultsCount());
+            assertEquals(0, persistenceLayer.recordsCount());
 
             ipTracer.trace("192.168.0.1");
             ipTracer.trace("192.168.0.1");
 
-            assertEquals(2, persistenceLayer.traceResultsCount());
+            assertEquals(2, persistenceLayer.recordsCount());
 
-            List<TraceResult> persistedTraceResults = persistenceLayer.getTraceResults("AR");
+            List<TraceResult> persistedTraceResults = persistenceLayer.recordsByCountry("AR");
 
             assertTrue(persistedTraceResults.stream().allMatch(traceResult ->
                     traceResult.ipAddress().equals("192.168.0.1") && traceResult.countryCode().equals("AR")));
@@ -187,18 +187,60 @@ public class IpTracerTest {
     void testIpTracerPersistMultipleTraceResultDiffIpsSameCountry() {
         try {
 
-            assertEquals(0, persistenceLayer.traceResultsCount());
+            assertEquals(0, persistenceLayer.recordsCount());
 
             ipTracer.trace("192.168.0.1");
             ipTracer.trace("192.168.0.2");
 
-            assertEquals(2, persistenceLayer.traceResultsCount());
+            assertEquals(2, persistenceLayer.recordsCount());
 
-            List<TraceResult> persistedTraceResults = persistenceLayer.getTraceResults("AR");
+            List<TraceResult> persistedTraceResults = persistenceLayer.recordsByCountry("AR");
 
             assertTrue(persistedTraceResults.stream().allMatch(traceResult -> traceResult.countryCode().equals("AR")));
             assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.0.1")));
             assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.0.2")));
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should persist multiple traces for different ips (different countries)")
+    void testIpTracerPersistMultipleTraceResultDiffIpsDiffCountries() {
+        try {
+
+            assertEquals(0, persistenceLayer.recordsCount());
+
+            ipTracer.trace("192.168.0.1"); // AR
+            ipTracer.trace("192.168.0.2"); // AR
+            ipTracer.trace("192.168.1.1"); // BR
+            ipTracer.trace("192.168.2.1"); // ES
+            ipTracer.trace("192.168.2.2"); // ES
+
+            assertEquals(5, persistenceLayer.recordsCount());
+
+            List<TraceResult> persistedTraceResults;
+
+            // AR
+            persistedTraceResults = persistenceLayer.recordsByCountry("AR");
+
+            assertTrue(persistedTraceResults.stream().allMatch(traceResult -> traceResult.countryCode().equals("AR")));
+            assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.0.1")));
+            assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.0.2")));
+
+            // BR
+            persistedTraceResults = persistenceLayer.recordsByCountry("BR");
+
+            assertTrue(persistedTraceResults.stream().allMatch(traceResult -> traceResult.countryCode().equals("BR")));
+            assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.1.1")));
+
+            // ES
+            persistedTraceResults = persistenceLayer.recordsByCountry("ES");
+
+            assertTrue(persistedTraceResults.stream().allMatch(traceResult -> traceResult.countryCode().equals("ES")));
+            assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.2.1")));
+            assertTrue(persistedTraceResults.stream().anyMatch(traceResult -> traceResult.ipAddress().equals("192.168.2.2")));
 
         } catch (Exception ex) {
             fail(ex.getMessage());
@@ -221,28 +263,36 @@ public class IpTracerTest {
             """::formatted);
     }
 
+    // Reference:
+    // https://ipapi.com/documentation
+    // https://ipapi.com/documentation#api_response_objects
     private static Ip2CountryService buildIp2CountryServiceStub() {
-        return new Ip2CountryServiceStub(ipAddress -> {
-            return """
-            {   "ip": %s,
-                "country_code": "AR",
-                "country_name": "Argentina",
-                "latitude": 34,
-                "longitude": 64,
-                "location": {
-                    "languages": [
-                       {
-                            "code": "es",
-                            "name": "Spanish"
-                       },
-                       {
-                            "code": "gn",
-                            "name": "Guarani"
-                       }
-                    ]
-                }
+        String jsonArgentina = """
+            { "ip": %s, "country_code": "AR", "country_name": "Argentina", "latitude": 34, "longitude": 64,
+              "location": { "languages": [{ "code": "es", "name": "Spanish" }, { "code": "gn", "name": "Guarani" }] }
             }
-            """.formatted(ipAddress.getHostAddress());
+            """;
+
+        String jsonBrasil = """
+            { "ip": %s, "country_code": "BR", "country_name": "Brasil", "latitude": 14.23, "longitude": 51.92,
+              "location": { "languages": [{ "code": "pt", "name": "Portuguese" }] }
+            }
+            """;
+
+        String jsonEspana = """
+            { "ip": %s, "country_code": "ES", "country_name": "España", "latitude": 40.46, "longitude": 3.74,
+              "location": { "languages": [{ "code": "es", "name": "Spanish" }, { "code": "ca", "name": "Catalan" },
+                                          { "code": "gl", "name": "Galician" }] }
+            }
+            """;
+
+        String[] responses = { jsonArgentina, jsonBrasil, jsonEspana };
+
+        return new Ip2CountryServiceStub(ipAddress -> {
+            // Easy stub logic where IP's third octet relates to country
+            // TODO: make safe method (ie. out of bounds, parseInt)
+            String countryOctet = ipAddress.getHostAddress().split("\\.")[2];
+            return responses[Integer.parseInt(countryOctet)].formatted(ipAddress.getHostAddress());
         });
     }
 

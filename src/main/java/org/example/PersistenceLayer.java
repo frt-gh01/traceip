@@ -12,11 +12,11 @@ public class PersistenceLayer {
         this.traceResults.add(traceResult);
     }
 
-    public int traceResultsCount() {
+    public int recordsCount() {
         return this.traceResults.size();
     }
 
-    public List<TraceResult> getTraceResults(String countryCode) {
+    public List<TraceResult> recordsByCountry(String countryCode) {
         return this.traceResults.stream()
                 .filter(traceResult -> Objects.equals(traceResult.countryCode(), countryCode))
                 .collect(Collectors.toList());
