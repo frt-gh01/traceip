@@ -44,6 +44,11 @@ public class GeoPosition {
                 this.latitude == geoPosition.latitude;
     }
 
+    @Override
+    public String toString() {
+        return "(%s, %s)".formatted(this.latitude, this.longitude);
+    }
+
     private double truncate(double number) {
         BigDecimal truncated = new BigDecimal(number).setScale(2, RoundingMode.DOWN);
         return truncated.doubleValue();
