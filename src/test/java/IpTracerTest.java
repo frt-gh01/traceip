@@ -25,6 +25,7 @@ public class IpTracerTest {
         ipTracer = new IpTracer(buildClock(),
                                 StubsFactory.buildIp2CountryServiceStub(),
                                 StubsFactory.buildTimeZoneServiceStub(buildClock()),
+                                StubsFactory.buildCurrencyService(buildClock()),
                                 persistenceLayer);
     }
 
@@ -404,13 +405,14 @@ public class IpTracerTest {
     void testIpTracerPrintReport() {
         try {
 
-            TraceResult traceResult =  ipTracer.trace("192.168.0.1"); // ES
+            TraceResult traceResult =  ipTracer.trace("192.168.0.1"); // AR
 
             String expected = """
                 IP: 192.168.0.1, fecha actual: 18/07/2025 10:00:00 (UTC+00:00)
                 País: Argentina
                 ISO Code: AR
                 Idiomas: Spanish (es), Guarani (gn)
+                Moneda: ARS (1 ARS = 0.00078 USD)
                 Hora: 07:00:00 (UTC-03:00), 06:00:00 (UTC-04:00)
                 Distancia estimada: 515.35 kms (-34.0, -64.0) a Buenos Aires (-34.6075, -58.437)
             """;

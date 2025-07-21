@@ -42,6 +42,7 @@ public class Main {
         IpTracer ipTracer = new IpTracer(buildClock(),
                                          StubsFactory.buildIp2CountryServiceStub(),
                                          StubsFactory.buildTimeZoneServiceStub(buildClock()),
+                                         StubsFactory.buildCurrencyService(buildClock()),
                                          StubsFactory.buildPersistenceLayer());
 
         TraceResult traceResult = ipTracer.trace(ipAddress);

@@ -3,8 +3,43 @@ package org.example.services;
 import org.example.PersistenceLayer;
 
 import java.time.Clock;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StubsFactory {
+
+    // Reference:
+    // https://fixer.io/documentation
+    public static CurrencyService buildCurrencyService(Clock clock) {
+        Map<String, Double> dollarExchangeRateByCurrency = Map.of(
+                "ARS", 0.00078,
+                "BRL", 0.18,
+                "EUR", 1.17
+        );
+
+        return new CurrencyServiceStub(clock, params -> {
+            String base = params.getValue(0).toString();
+            String target = params.getValue(1).toString();
+
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            OffsetDateTime offsetDateTime = (OffsetDateTime) params.getValue(2);
+            String date = offsetDateTime.format(dateTimeFormatter);
+
+            return """
+            {
+                "historical": "true",
+                "date": %s,
+                "base": %s,
+                "rates": {
+                    %s: %s
+                }
+            }
+            """.formatted(date, base, target, dollarExchangeRateByCurrency.get(base));
+        });
+    }
+
     public static TimeZoneService buildTimeZoneServiceStub(Clock clock) {
         return new TimeZoneServiceStub(clock, """
             {   "name": %s,
@@ -16,25 +51,29 @@ public class StubsFactory {
             """::formatted);
     }
 
+    // Reference:
+    // https://ipapi.com/documentation
+    // https://ipapi.com/documentation#api_response_objects
     public static Ip2CountryService buildIp2CountryServiceStub() {
         String jsonArgentina = """
             { "ip": %s, "country_code": "AR", "country_name": "Argentina", "latitude": -34, "longitude": -64,
-              "location": { "languages": [{ "code": "es", "name": "Spanish" }, { "code": "gn", "name": "Guarani" }] }
+              "location": { "languages": [{ "code": "es", "name": "Spanish" }, { "code": "gn", "name": "Guarani" }] },
+              "currency": { "code": "ARS", "name": "Argentine Peso", "symbol": "$" }
             }
             """;
 
         String jsonBrasil = """
             { "ip": %s, "country_code": "BR", "country_name": "Brasil", "latitude": -14.23, "longitude": -51.92,
-              "location": { "languages": [{ "code": "pt", "name": "Portuguese" }] }
+              "location": { "languages": [{ "code": "pt", "name": "Portuguese" }] },
+              "currency": { "code": "BRL", "name": "Brazilian real", "symbol": "R$" }
             }
             """;
 
         String jsonEspana = """
             { "ip": %s, "country_code": "ES", "country_name": "España", "latitude": 40.46, "longitude": 3.74,
               "location": { "languages": [{ "code": "es", "name": "Spanish" }, { "code": "ca", "name": "Catalan" },
-                                          { "code": "gl", "name": "Galician" }] 
-                                          
-                                          }
+                                          { "code": "gl", "name": "Galician" }] },
+              "currency": { "code": "EUR", "name": "Euro", "symbol": "€" }
             }
             """;
 
