@@ -39,10 +39,10 @@ public class Main {
     }
 
     public static void runTraceIp(String ipAddress) throws UnknownHostException {
-        PersistenceLayer persistenceLayer = StubsFactory.buildPersistenceLayer();
-        IpTracer ipTracer = new IpTracer(StubsFactory.buildIp2CountryServiceStub(),
+        IpTracer ipTracer = new IpTracer(buildClock(),
+                                         StubsFactory.buildIp2CountryServiceStub(),
                                          StubsFactory.buildTimeZoneServiceStub(buildClock()),
-                                         persistenceLayer);
+                                         StubsFactory.buildPersistenceLayer());
 
         TraceResult traceResult = ipTracer.trace(ipAddress);
         System.out.println(traceResult);

@@ -27,6 +27,10 @@ public class TraceResult {
         return this.requestInfo.getIpAddress().getHostAddress();
     }
 
+    public OffsetDateTime localDateTime() {
+        return this.requestInfo.getDateTime();
+    }
+
     public String countryName() {
         return this.countryInfo.countryName;
     }
@@ -54,21 +58,22 @@ public class TraceResult {
 
     @Override
     public String toString() {
+        String localDateTime = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss '(UTC'xxx')'").format(this.localDateTime());
         String languages = this.languages().stream().map(Language::toString).collect(Collectors.joining(", "));
         String times = this.dateTimes.stream().map(offsetDateTime -> {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss '(UTC'XXX')'");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss '(UTC'xxx')'");
             return offsetDateTime.format(formatter);
         }).collect(Collectors.joining(", "));
         String distance = "%s kms %s a Buenos Aires %s".formatted(this.distanceKilometersToBuenosAires(), this.geoPosition(), GEO_BUENOS_AIRES);
 
         return """ 
-            IP: %s
+            IP: %s, fecha actual: %s
             País: %s
             ISO Code: %s
             Idiomas: %s
             Hora: %s
             Distancia estimada: %s
-        """.formatted(this.ipAddress(), this.countryName(), this.countryCode(),
+        """.formatted(this.ipAddress(), localDateTime, this.countryName(), this.countryCode(),
                       languages, times, distance);
     }
 }

@@ -22,7 +22,8 @@ public class IpTracerTest {
     @BeforeEach
     void setUp() {
         persistenceLayer = StubsFactory.buildPersistenceLayer();
-        ipTracer = new IpTracer(StubsFactory.buildIp2CountryServiceStub(),
+        ipTracer = new IpTracer(buildClock(),
+                                StubsFactory.buildIp2CountryServiceStub(),
                                 StubsFactory.buildTimeZoneServiceStub(buildClock()),
                                 persistenceLayer);
     }
@@ -406,7 +407,7 @@ public class IpTracerTest {
             TraceResult traceResult =  ipTracer.trace("192.168.0.1"); // ES
 
             String expected = """
-                IP: 192.168.0.1
+                IP: 192.168.0.1, fecha actual: 18/07/2025 10:00:00 (UTC+00:00)
                 País: Argentina
                 ISO Code: AR
                 Idiomas: Spanish (es), Guarani (gn)
