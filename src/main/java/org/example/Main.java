@@ -1,6 +1,7 @@
 package org.example;
 
 import org.apache.commons.cli.*;
+import org.example.db.PersistenceLayerDB;
 import org.example.services.StubsFactory;
 
 import java.net.UnknownHostException;
@@ -43,20 +44,22 @@ public class Main {
                                          StubsFactory.buildIp2CountryServiceStub(),
                                          StubsFactory.buildTimeZoneServiceStub(buildClock()),
                                          StubsFactory.buildCurrencyServiceStub(buildClock()),
-                                         StubsFactory.buildPersistenceLayer());
+                                         buildPersistenceLayerDB());
 
         TraceResult traceResult = ipTracer.trace(ipAddress);
         System.out.println(traceResult);
     }
 
     public static void runStatsGenerator() {
-        PersistenceLayer persistenceLayer = StubsFactory.buildPersistenceLayer();
-        StatsGenerator statsGenerator = new StatsGenerator(persistenceLayer);
-
+        StatsGenerator statsGenerator = new StatsGenerator(buildPersistenceLayerDB());
         System.out.println(statsGenerator.generate());
     }
 
     private static Clock buildClock() {
         return Clock.systemUTC();
+    }
+
+    private static PersistenceLayerDB buildPersistenceLayerDB() {
+        return new PersistenceLayerDB();
     }
 }

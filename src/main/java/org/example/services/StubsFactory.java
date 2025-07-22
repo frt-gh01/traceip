@@ -1,6 +1,7 @@
 package org.example.services;
 
-import org.example.PersistenceLayer;
+import org.example.db.PersistenceLayer;
+import org.example.db.PersistenceLayerStub;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -101,6 +102,6 @@ public class StubsFactory {
     }
 
     public static PersistenceLayer buildPersistenceLayer() {
-        return new PersistenceLayer();
+        return new PersistenceLayerStub();
     }
 }

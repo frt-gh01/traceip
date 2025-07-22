@@ -1,5 +1,8 @@
 package org.example;
 
+import org.example.db.PersistenceLayer;
+import org.example.db.PersistenceLayerStub;
+
 import java.util.Optional;
 
 public class StatsGenerator {
@@ -35,6 +38,6 @@ public class StatsGenerator {
     }
 
     private String unwrapDoubleToString(Optional<Double> distance) {
-        return distance.isPresent() ? distance.toString() : "No hay registros";
+        return distance.map(Object::toString).orElse("No hay registros");
     }
 }

@@ -1,7 +1,10 @@
-package org.example;
+package org.example.db;
 
+import jdk.jshell.spi.ExecutionControl;
+import org.example.TraceResult;
 import org.javatuples.Pair;
-
+import java.util.List;
+import java.util.Optional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -59,7 +62,7 @@ public class PersistenceLayer {
     }
 
     public Optional<Double> queryAverageDistanceToBuenosAires() {
-        return averageDistance;
+        throw new RuntimeException("Should be implemented.");
     }
 
     private void updateDistanceToBsAsByCountry(TraceResult traceResult) {
@@ -84,17 +87,12 @@ public class PersistenceLayer {
         }
     }
 
-    private void updateAverageDistanceToBsAs(TraceResult traceResult) {
-        double prevCount = this.queryTraceResultsCount() - 1;
-
-        double prevSum = prevCount * this.averageDistance.orElse(0.0);
-        double newSum = prevSum + traceResult.distanceKilometersToBuenosAires();
-
-        this.averageDistance = Optional.of(truncate(newSum / (prevCount + 1)));
+    protected void updateAverageDistanceToBsAs(TraceResult traceResult) {
+        throw new RuntimeException("Should be implemented.");
     }
 
     // TODO: remove repeated code with GeoPosition
-    private double truncate(double number) {
+    protected double truncate(double number) {
         BigDecimal truncated = new BigDecimal(number).setScale(2, RoundingMode.DOWN);
         return truncated.doubleValue();
     }
