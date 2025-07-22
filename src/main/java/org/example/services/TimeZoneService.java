@@ -2,6 +2,7 @@ package org.example.services;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import org.javatuples.Tuple;
 
 import java.lang.reflect.Type;
 import java.time.Clock;
@@ -14,13 +15,15 @@ import java.util.stream.Collectors;
 
 public abstract class TimeZoneService {
     private final Clock clock;
+    private final RequestExecutor requestExecutor;
 
-    public TimeZoneService(Clock clock) {
+    public TimeZoneService(Clock clock, RequestExecutor requestExecutor) {
         this.clock = clock;
+        this.requestExecutor = requestExecutor;
     }
 
     public List<OffsetDateTime> countryDateTimes(String countryName) {
-        String jsonResponse = this.requestZoneOffsets(countryName);
+        String jsonResponse = requestExecutor.execute(countryName, (param) -> this.requestZoneOffsets((String)param));
         return parseDateTime(jsonResponse);
     }
 

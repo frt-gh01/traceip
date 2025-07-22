@@ -1,5 +1,5 @@
 import org.example.*;
-import org.example.services.StubsFactory;
+import org.example.services.*;
 import org.example.structs.Language;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +25,7 @@ public class IpTracerTest {
         ipTracer = new IpTracer(buildClock(),
                                 StubsFactory.buildIp2CountryServiceStub(),
                                 StubsFactory.buildTimeZoneServiceStub(buildClock()),
-                                StubsFactory.buildCurrencyService(buildClock()),
+                                StubsFactory.buildCurrencyServiceStub(buildClock()),
                                 persistenceLayer);
     }
 
@@ -418,6 +418,155 @@ public class IpTracerTest {
             """;
 
             assertEquals(expected, traceResult.toString());
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should cache Ip2CountryService calls")
+    void testIpTracerIp2CountryServiceCache() {
+
+        RequestExecutorCached requestExecutor = new RequestExecutorCached();
+        Ip2CountryService ip2CountryService = StubsFactory.buildIp2CountryServiceStub(requestExecutor);
+
+        ipTracer = new IpTracer(buildClock(),
+                ip2CountryService,
+                StubsFactory.buildTimeZoneServiceStub(buildClock()),
+                StubsFactory.buildCurrencyServiceStub(buildClock()),
+                StubsFactory.buildPersistenceLayer());
+
+        try {
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(0, requestExecutor.cacheHitsCount());
+
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(1, requestExecutor.cacheHitsCount());
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should cache TimeZoneService calls")
+    void testIpTracerTimeZoneServiceCache() {
+
+        RequestExecutorCached requestExecutor = new RequestExecutorCached();
+        TimeZoneService timeZoneService = StubsFactory.buildTimeZoneServiceStub(buildClock(), requestExecutor);
+
+        ipTracer = new IpTracer(buildClock(),
+                StubsFactory.buildIp2CountryServiceStub(),
+                timeZoneService,
+                StubsFactory.buildCurrencyServiceStub(buildClock()),
+                StubsFactory.buildPersistenceLayer());
+
+        try {
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(0, requestExecutor.cacheHitsCount());
+
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(1, requestExecutor.cacheHitsCount());
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should cache CurrencyService calls")
+    void testIpTracerCurrencyServiceCache() {
+
+        RequestExecutorCached requestExecutor = new RequestExecutorCached();
+        CurrencyService currencyService = StubsFactory.buildCurrencyServiceStub(buildClock(), requestExecutor);
+
+        ipTracer = new IpTracer(buildClock(),
+                                StubsFactory.buildIp2CountryServiceStub(),
+                                StubsFactory.buildTimeZoneServiceStub(buildClock()),
+                                currencyService,
+                                StubsFactory.buildPersistenceLayer());
+
+        try {
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(0, requestExecutor.cacheHitsCount());
+
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(1, requestExecutor.cacheHitsCount());
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should cache all Services calls in same cache")
+    void testIpTracerAllServicesSameCache() {
+
+        RequestExecutorCached ip2CountryServiceExecutor = new RequestExecutorCached();
+        Ip2CountryService ip2CountryService = StubsFactory.buildIp2CountryServiceStub(ip2CountryServiceExecutor);
+
+        RequestExecutorCached timeZoneServiceExecutor = new RequestExecutorCached();
+        TimeZoneService timeZoneService = StubsFactory.buildTimeZoneServiceStub(buildClock(), timeZoneServiceExecutor);
+
+        RequestExecutorCached currencyServiceExecutor = new RequestExecutorCached();
+        CurrencyService currencyService = StubsFactory.buildCurrencyServiceStub(buildClock(), currencyServiceExecutor);
+
+        ipTracer = new IpTracer(buildClock(),
+                ip2CountryService,
+                timeZoneService,
+                currencyService,
+                StubsFactory.buildPersistenceLayer());
+
+        try {
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(0, ip2CountryServiceExecutor.cacheHitsCount());
+            assertEquals(0, timeZoneServiceExecutor.cacheHitsCount());
+            assertEquals(0, currencyServiceExecutor.cacheHitsCount());
+
+            ipTracer.trace("192.168.0.1");
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(2, ip2CountryServiceExecutor.cacheHitsCount());
+            assertEquals(2, timeZoneServiceExecutor.cacheHitsCount());
+            assertEquals(2, currencyServiceExecutor.cacheHitsCount());
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should cache all Services calls different caches")
+    void testIpTracerAllServicesDiffCache() {
+
+        RequestExecutorCached requestExecutor = new RequestExecutorCached();
+
+        Ip2CountryService ip2CountryService = StubsFactory.buildIp2CountryServiceStub(requestExecutor);
+        TimeZoneService timeZoneService = StubsFactory.buildTimeZoneServiceStub(buildClock(), requestExecutor);
+        CurrencyService currencyService = StubsFactory.buildCurrencyServiceStub(buildClock(), requestExecutor);
+
+        ipTracer = new IpTracer(buildClock(),
+                ip2CountryService,
+                timeZoneService,
+                currencyService,
+                StubsFactory.buildPersistenceLayer());
+
+        try {
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(0, requestExecutor.cacheHitsCount());
+
+            ipTracer.trace("192.168.0.1");
+
+            assertEquals(3, requestExecutor.cacheHitsCount());
 
         } catch (Exception ex) {
             fail(ex.getMessage());

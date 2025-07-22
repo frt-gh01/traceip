@@ -7,8 +7,8 @@ public class Ip2CountryServiceStub extends Ip2CountryService {
 
     private final Function<InetAddress, String> requestHandler;
 
-    public Ip2CountryServiceStub(Function<InetAddress, String> requestHandler) {
-        super();
+    public Ip2CountryServiceStub(RequestExecutor requestExecutor, Function<InetAddress, String> requestHandler) {
+        super(requestExecutor);
         this.requestHandler = requestHandler;
     }
 

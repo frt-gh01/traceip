@@ -5,21 +5,24 @@ import org.example.PersistenceLayer;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.Map;
 
 public class StubsFactory {
 
+    public static CurrencyService buildCurrencyServiceStub(Clock clock) {
+        return buildCurrencyServiceStub(clock, new RequestExecutor());
+    }
+
     // Reference:
     // https://fixer.io/documentation
-    public static CurrencyService buildCurrencyService(Clock clock) {
+    public static CurrencyService buildCurrencyServiceStub(Clock clock, RequestExecutor requestExecutor) {
         Map<String, Double> dollarExchangeRateByCurrency = Map.of(
                 "ARS", 0.00078,
                 "BRL", 0.18,
                 "EUR", 1.17
         );
 
-        return new CurrencyServiceStub(clock, params -> {
+        return new CurrencyServiceStub(clock, requestExecutor, params -> {
             String base = params.getValue(0).toString();
             String target = params.getValue(1).toString();
 
@@ -41,7 +44,13 @@ public class StubsFactory {
     }
 
     public static TimeZoneService buildTimeZoneServiceStub(Clock clock) {
-        return new TimeZoneServiceStub(clock, """
+        return buildTimeZoneServiceStub(clock, new RequestExecutor());
+    }
+
+    // Reference:
+    // https://countrylayer.com/documentation/
+    public static TimeZoneService buildTimeZoneServiceStub(Clock clock, RequestExecutor requestExecutor) {
+        return new TimeZoneServiceStub(clock, requestExecutor, """
             {   "name": %s,
                 "timezones": [
                     "UTC-03:00",
@@ -51,10 +60,14 @@ public class StubsFactory {
             """::formatted);
     }
 
+    public static Ip2CountryService buildIp2CountryServiceStub() {
+        return buildIp2CountryServiceStub(new RequestExecutor());
+    }
+
     // Reference:
     // https://ipapi.com/documentation
     // https://ipapi.com/documentation#api_response_objects
-    public static Ip2CountryService buildIp2CountryServiceStub() {
+    public static Ip2CountryService buildIp2CountryServiceStub(RequestExecutor requestExecutor) {
         String jsonArgentina = """
             { "ip": %s, "country_code": "AR", "country_name": "Argentina", "latitude": -34, "longitude": -64,
               "location": { "languages": [{ "code": "es", "name": "Spanish" }, { "code": "gn", "name": "Guarani" }] },
@@ -79,7 +92,7 @@ public class StubsFactory {
 
         String[] responses = { jsonArgentina, jsonBrasil, jsonEspana };
 
-        return new Ip2CountryServiceStub(ipAddress -> {
+        return new Ip2CountryServiceStub(requestExecutor, ipAddress -> {
             // Easy stub logic where IP's third octet relates to country
             // TODO: make safe method (ie. out of bounds, parseInt)
             String countryOctet = ipAddress.getHostAddress().split("\\.")[2];

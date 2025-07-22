@@ -7,8 +7,8 @@ public class TimeZoneServiceStub extends TimeZoneService {
 
     private final Function<String, String> requestHandler;
 
-    public TimeZoneServiceStub(Clock clock, Function<String, String> requestHandler) {
-        super(clock);
+    public TimeZoneServiceStub(Clock clock, RequestExecutor requestExecutor, Function<String, String> requestHandler) {
+        super(clock, requestExecutor);
         this.requestHandler = requestHandler;
     }
 
